@@ -58,17 +58,20 @@
 
 ### 01. 四肢のIK / FK制御
 
-![IK/FK Controllers](docs/images/IKFK_Controllers.png)
+
 
 ![IK/FK Switching](docs/gifs/IKFK_Switch.gif)
 
 両腕・両脚にIK/FK切替を実装しました。IKでは手足の位置、FKでは関節の回転を中心に操作できます。FK用・IK用のDriverと変形ジョイントを分離し、それぞれの設定コントローラーから制御方式を切り替える構造です。
 
+![IK Switching](docs/gifs/IK_switch.gif)
+
 腕のIKコントローラーには**Body / World**の基準切替を用意し、胴体に追従させる動きと、空間上に手を残したい動きを使い分けられるようにしています。各四肢にはPole Vectorを設け、IK操作時の関節方向を調整できます。
 
 ### 02. 二段階の足先制御 | Simple / Reverse
 
-![Foot Control](docs/gifs/Foot_Control.gif)
+
+![IK Space Switching](docs/gifs/IK_Space.gif)
 
 脚の設定コントローラーに**Foot Mode（Simple / Reverse）**を用意しました。通常のポージングではシンプルな足操作を使い、踏み込みやつま先立ちなど接地表現を細かく調整したい場面ではReverse Footを使用できます。
 
@@ -76,7 +79,8 @@
 
 ### 03. IKの追従基準切替
 
-![IK Space Switching](docs/gifs/IK_Space.gif)
+![Foot Control](docs/gifs/Foot_Control.gif)
+
 
 腕・脚のIKに**Body / World**の基準切替を用意しました。脚にはさらに**Hip Follow**を設け、腰の動きとの関係を調整できます。
 
@@ -91,8 +95,6 @@
 SDキャラクターの丸みを崩しすぎず、前屈・反り・重心移動などを通じて、柔らかく弾むような印象を作りやすくすることを目指しました。
 
 ### 05. 首・頭部の制御 | Neck / World
-
-![Head Control](docs/gifs/Head_Control.gif)
 
 首と頭部のコントローラーを分け、顔の向きや傾きを独立して調整できます。頭部には**Rotation Space（Neck / World）**を実装しました。
 
@@ -110,25 +112,42 @@ SDキャラクターの丸みを崩しすぎず、前屈・反り・重心移動
 
 複雑なシミュレーションを前提とせず、キャラクターらしいシルエットやニュアンスを手付けで調整しやすくする設計です。
 
-### 07. フェイシャルと手指の操作
+### 07. UV切替式フェイシャルリグ | Texture Atlas
 
-![Facial Controllers](docs/images/Facial_Controllers.png)
+![Facial Texture Atlas](docs/images/Facial_TextureAtlas.png)
+
 
 ![Facial Demo](docs/gifs/Facial_Demo.gif)
 
-目・眉・口周辺の既存制御を活かし、表情の変化を調整できる構成です。両手の親指には専用のFKコントローラーを備え、腕の設定コントローラーから表示を管理できます。
+**Texture AtlasとUV Offsetを利用したフェイシャル制御システム**を実装しました。
 
-小さな頭身のキャラクターだからこそ、顔周辺と手先の変化が印象に与える影響を重視しました。
+1枚のテクスチャに6種類の表情を配置し、UV座標の参照位置を切り替えることで表情を変更します。
 
-### 08. 必要なときだけ使える詳細コントローラー
+専用コントローラー `Facial_anim` には表情選択用のカスタム属性を設け、アニメーターがUVエディタを操作することなく、属性の切替だけで表情を変更できる構成としました。
 
-![Control Visibility](docs/gifs/Control_Visibility.gif)
+メッシュの変形を伴わないため、SDキャラクターのシンプルな造形を維持しながら、効率的に感情表現を切り替えられます。
 
-補助的な足先操作や親指、アホ毛などの詳細制御は、通常時の画面を見やすくするため、基本操作から切り分けています。アニメーションの場面に応じて表示を切り替えることで、**機能の自由度と視認性を両立**させました。
+### 08. 手指制御 | SDK / Thumb FK
+
+![Hand Demo](docs/gifs/Hand_Control.gif)
+
+両手にSet Driven Key（SDK）を利用した手指制御を実装しました。
+
+設定コントローラーの属性から指の握りや開きをまとめて操作でき、基本的なハンドポーズを効率的に作成できます。
+
+また、親指には専用のFKコントローラーを設け、必要に応じて個別の回転調整が行える構成としました。
+
+詳細コントローラーは表示を切り替えられるため、通常時の操作性を維持しながら、手先の細かなニュアンスにも対応できます。
+
+
+### 09. 必要なときだけ使える詳細コントローラー
+
+![Control Visibility](docs/images/Control_Visibility.png)
+
+補助的な足先操作や親指、アホ毛などの詳細制御は歯車型のコントローラーを置いています。通常時の画面を見やすくするため、基本操作から切り分けています。アニメーションの場面に応じて表示を切り替えることで、**機能の自由度と視認性を両立**させました。
 
 ## 技術的な設計と工夫
 
-![Rig Hierarchy](docs/images/Rig_Hierarchy.png)
 
 操作コントローラー（`*_anim`）、IK/FK用Driver、最終的な変形ジョイントを役割ごとに分離しています。必要な操作だけを表側に出し、切替・追従・補助制御を内部のノード構成で管理する方針です。
 
@@ -168,7 +187,6 @@ Shiu-Character-Rig/
         ├── Foot_Control.gif
         ├── IK_Space.gif
         ├── Body_Motion.gif
-        ├── Head_Control.gif
         ├── Hood_Control.gif
         ├── Ahoge_Control.gif
         ├── Facial_Demo.gif
@@ -195,3 +213,11 @@ Shiu-Character-Rig/
 ## GitHub
 
 [GitHub - Yuzuki Midoshima](https://github.com/Yuzuki-Midoshima)
+
+---
+
+## License
+
+MIT License
+
+Copyright (c) 2026 Yuzuki Midoshima
